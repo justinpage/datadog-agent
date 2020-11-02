@@ -5,7 +5,7 @@
 
 // +build kubelet
 
-package providers
+package common
 
 import (
 	"testing"
@@ -27,7 +27,7 @@ func TestConfigsForPod(t *testing.T) {
 	}{
 		{
 			name:  "nominal case",
-			check: defaultCheck,
+			check: DefaultPrometheusCheck,
 			pod: &kubelet.Pod{
 				Metadata: kubelet.PodMetadata{
 					Name:        "foo-pod",
@@ -54,7 +54,7 @@ func TestConfigsForPod(t *testing.T) {
 					InitConfig:    integration.Data("{}"),
 					Instances:     []integration.Data{integration.Data("{\"prometheus_url\":\"http://%%host%%:%%port%%/metrics\",\"namespace\":\"\",\"metrics\":[\"*\"]}")},
 					Provider:      names.PrometheusPods,
-					Source:        "kubelet:foo-ctr-id",
+					Source:        "prometheus_pods:foo-ctr-id",
 					ADIdentifiers: []string{"foo-ctr-id"},
 				},
 			},
@@ -96,14 +96,14 @@ func TestConfigsForPod(t *testing.T) {
 					InitConfig:    integration.Data("{}"),
 					Instances:     []integration.Data{integration.Data("{\"prometheus_url\":\"foo/bar\",\"namespace\":\"\",\"metrics\":[\"*\"]}")},
 					Provider:      names.PrometheusPods,
-					Source:        "kubelet:foo-ctr-id",
+					Source:        "prometheus_pods:foo-ctr-id",
 					ADIdentifiers: []string{"foo-ctr-id"},
 				},
 			},
 		},
 		{
 			name:  "excluded",
-			check: defaultCheck,
+			check: DefaultPrometheusCheck,
 			pod: &kubelet.Pod{
 				Metadata: kubelet.PodMetadata{
 					Name:        "foo-pod",
@@ -128,7 +128,7 @@ func TestConfigsForPod(t *testing.T) {
 		},
 		{
 			name:  "no match",
-			check: defaultCheck,
+			check: DefaultPrometheusCheck,
 			pod: &kubelet.Pod{
 				Metadata: kubelet.PodMetadata{
 					Name:        "foo-pod",
@@ -153,7 +153,7 @@ func TestConfigsForPod(t *testing.T) {
 		},
 		{
 			name:  "multi containers, match all",
-			check: defaultCheck,
+			check: DefaultPrometheusCheck,
 			pod: &kubelet.Pod{
 				Metadata: kubelet.PodMetadata{
 					Name:        "foo-pod",
@@ -188,7 +188,7 @@ func TestConfigsForPod(t *testing.T) {
 					InitConfig:    integration.Data("{}"),
 					Instances:     []integration.Data{integration.Data("{\"prometheus_url\":\"http://%%host%%:%%port%%/metrics\",\"namespace\":\"\",\"metrics\":[\"*\"]}")},
 					Provider:      names.PrometheusPods,
-					Source:        "kubelet:foo-ctr1-id",
+					Source:        "prometheus_pods:foo-ctr1-id",
 					ADIdentifiers: []string{"foo-ctr1-id"},
 				},
 				{
@@ -196,7 +196,7 @@ func TestConfigsForPod(t *testing.T) {
 					InitConfig:    integration.Data("{}"),
 					Instances:     []integration.Data{integration.Data("{\"prometheus_url\":\"http://%%host%%:%%port%%/metrics\",\"namespace\":\"\",\"metrics\":[\"*\"]}")},
 					Provider:      names.PrometheusPods,
-					Source:        "kubelet:foo-ctr2-id",
+					Source:        "prometheus_pods:foo-ctr2-id",
 					ADIdentifiers: []string{"foo-ctr2-id"},
 				},
 			},
@@ -242,7 +242,7 @@ func TestConfigsForPod(t *testing.T) {
 					InitConfig:    integration.Data("{}"),
 					Instances:     []integration.Data{integration.Data("{\"prometheus_url\":\"http://%%host%%:%%port%%/metrics\",\"namespace\":\"\",\"metrics\":[\"*\"]}")},
 					Provider:      names.PrometheusPods,
-					Source:        "kubelet:foo-ctr1-id",
+					Source:        "prometheus_pods:foo-ctr1-id",
 					ADIdentifiers: []string{"foo-ctr1-id"},
 				},
 			},
@@ -309,7 +309,7 @@ func TestConfigsForPod(t *testing.T) {
 					InitConfig:    integration.Data("{}"),
 					Instances:     []integration.Data{integration.Data("{\"prometheus_url\":\"http://%%host%%:%%port%%/metrics\",\"namespace\":\"\",\"metrics\":[\"*\"]}")},
 					Provider:      names.PrometheusPods,
-					Source:        "kubelet:foo-ctr-id",
+					Source:        "prometheus_pods:foo-ctr-id",
 					ADIdentifiers: []string{"foo-ctr-id"},
 				},
 			},
@@ -317,9 +317,8 @@ func TestConfigsForPod(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tt.check.init()
-			configs := tt.check.configsForPod(tt.pod)
-			assert.ElementsMatch(t, configs, tt.want)
+			tt.check.Init()
+			assert.ElementsMatch(t, tt.want, tt.check.ConfigsForPod(tt.pod))
 		})
 	}
 }
